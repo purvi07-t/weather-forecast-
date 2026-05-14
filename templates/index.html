@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Weather Forecast</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- External CSS and JS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Weather Forecast</h1>
+
+    <!-- Search Form -->
+    <div class="card">
+      <form method="POST" action="{{ url_for('index') }}">
+        <input type="text" name="city" placeholder="Enter city (e.g., Agra or Agra,IN)" required>
+        <button type="submit">Get Weather</button>
+      </form>
+      {% if error %}
+        <p class="error">{{ error }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Current Weather -->
+    {% if current %}
+    <div class="card">
+      <h2>Current Weather — {{ city }}</h2>
+      <div class="weather-grid">
+        <div class="weather-item">
+          <strong>Description</strong>
+          <div>{{ current.description }}</div>
+          <img src="http://openweathermap.org/img/wn/{{ current.icon }}.png" alt="{{ current.description }}">
+        </div>
+        <div class="weather-item"><strong>Temperature</strong><div>{{ current.temp }} °C</div></div>
+        <div class="weather-item"><strong>Feels Like</strong><div>{{ current.feels_like }} °C</div></div>
+        <div class="weather-item"><strong>Humidity</strong><div>{{ current.humidity }} %</div></div>
+        <div class="weather-item"><strong>Pressure</strong><div>{{ current.pressure }} hPa</div></div>
+        <div class="weather-item"><strong>Wind Speed</strong><div>{{ current.wind_speed }} m/s</div></div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Forecast -->
+    {% if forecast %}
+    <div class="card">
+      <h2>Forecast (next {{ forecast|length }} points)</h2>
+      <canvas id="tempChart" height="120"></canvas>
+
+      <!-- Chart Data -->
+      <script>
+        const labels = [
+          {% for item in forecast %}
+            "{{ item.dt_txt }}"{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ];
+        const temps = [
+          {% for item in forecast %}
+            {{ item.temp }}{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ];
+        const feels = [
+          {% for item in forecast %}
+            {{ item.feels_like }}{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ];
+        const humid = [
+          {% for item in forecast %}
+            {{ item.humidity }}{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ];
+
+        renderForecastChart(labels, temps, feels, humid);
+      </script>
+
+      <hr>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;">
+        {% for item in forecast %}
+        <div style="min-width:140px;background:#f9fafb;padding:8px;border-radius:6px;text-align:left;">
+          <div style="font-weight:600;">{{ item.dt_txt }}</div>
+          <div style="font-size:14px;">{{ item.weather }}</div>
+          <img src="http://openweathermap.org/img/wn/{{ item.icon }}.png" alt="{{ item.weather }}">
+          <div>Temp: {{ item.temp }} °C</div>
+          <div>Feels: {{ item.feels_like }} °C</div>
+          <div>Humidity: {{ item.humidity }}%</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>
